@@ -32,5 +32,9 @@ public class LattePsiImplUtil {
 		);
 		return (argsNode != null ? "=" : "");
 	}
+	@NotNull
+	public static String getAnnotationMacroName(LatteMacroTag element) {
+		return "@var";
+	}
 
 }

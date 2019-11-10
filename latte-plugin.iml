@@ -42,6 +42,9 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" scope="PROVIDED" name="php-openapi" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="php" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="commons-compress-1.18" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="php-openapi-src" level="project" />
   </component>
 </module>
-

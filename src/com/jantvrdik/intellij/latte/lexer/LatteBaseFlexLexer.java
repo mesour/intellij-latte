@@ -35,6 +35,21 @@ public abstract class LatteBaseFlexLexer implements FlexLexer {
 		yybegin(top);
 	}
 
+	@Override
+	public int getTokenStart() {
+		return 0;
+	}
+
+	@Override
+	public int getTokenEnd() {
+		return 0;
+	}
+
+	@Override
+	public void reset(CharSequence charSequence, int i, int i1, int i2) {
+
+	}
+
 	/**
 	 * Rollbacks the entire match.
 	 */

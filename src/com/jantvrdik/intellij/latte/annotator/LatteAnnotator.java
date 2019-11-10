@@ -22,6 +22,10 @@ public class LatteAnnotator implements Annotator {
 			LatteMacroTag openTag = ((LatteMacroClassic) element).getOpenTag();
 			LatteMacroTag closeTag = ((LatteMacroClassic) element).getCloseTag();
 
+			if (openTag == null) {
+				return;
+			}
+
 			String openTagName = openTag.getMacroName();
 			LatteMacro macro = LatteConfiguration.INSTANCE.getMacro(element.getProject(), openTagName);
 			if (macro == null || macro.type == LatteMacro.Type.ATTR_ONLY) {

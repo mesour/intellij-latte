@@ -17,8 +17,11 @@ import static com.jantvrdik.intellij.latte.psi.LatteTypes.*;
 %state NAME_SHORT
 %state ARGS
 
-NAME_FULL = [a-zA-Z][a-zA-Z0-9_]* ([.:][a-zA-Z0-9_]+)*
+WHITE_SPACE=[ \t\r\n]+
+NAME_FULL = @?[a-zA-Z][a-zA-Z0-9_]* ([.:][a-zA-Z0-9_]+)*
 MODIFIERS = [a-zA-Z] ({STRING} | [^'\"])*
+VAR_DEFINITION = [A-Za-z_][A-Za-z0-9_]+
+VAR_TYPE = \\[a-zA-Z_][a-zA-Z0-9_\\]+
 STRING = {STRING_SQ} | {STRING_DQ}
 STRING_SQ = "'" ("\\" [^] | [^'\\])* "'"
 STRING_DQ = "\"" ("\\" [^] | [^\"\\])* "\""
@@ -40,6 +43,13 @@ STRING_DQ = "\"" ("\\" [^] | [^\"\\])* "\""
 	"?" {
 		yybegin(ARGS);
 		return T_MACRO_NAME;
+	}
+}
+
+<NAME_ANY> {
+	"@var " {
+		yybegin(NAME_SHORT);
+		return T_MACRO_ANNOTATION;
 	}
 }
 
@@ -86,6 +96,21 @@ STRING_DQ = "\"" ("\\" [^] | [^\"\\])* "\""
 	"/}" / [^] {
 		yybegin(ARGS);
 		return T_MACRO_CONTENT;
+	}
+
+	"$" {VAR_DEFINITION} {
+		yybegin(ARGS);
+		return T_MACRO_ARGS_VAR;
+	}
+
+	"$" {VAR_DEFINITION} {WHITE_SPACE} {
+		yybegin(ARGS);
+		return T_MACRO_VAR_DEFINITION;
+	}
+
+	{VAR_TYPE} {
+		yybegin(ARGS);
+		return T_MACRO_VAR_TYPE;
 	}
 
 	"|" / {MODIFIERS} "/"? "}" {

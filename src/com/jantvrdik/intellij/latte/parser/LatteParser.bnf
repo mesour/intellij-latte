@@ -22,7 +22,7 @@ private
 macro            ::= macroComment | macroClassic
 
 macroComment     ::= T_MACRO_COMMENT
-macroClassic     ::= <<checkPairMacro true>> (pairMacro | emptyMacro) | <<checkPairMacro false>> unpairedMacro {
+macroClassic     ::= <<checkAnnotationMacro>> annotationMacro | <<checkPairMacro true>> (pairMacro | emptyMacro) | <<checkPairMacro false>> unpairedMacro {
                      	methods = [
                      		openTag="macroTag[0]"
                      		closeTag="macroTag[1]"
@@ -38,11 +38,20 @@ emptyMacro       ::= emptyMacroTag;
 private
 unpairedMacro    ::= macroOpenTag
 
+private
+annotationMacro    ::= macroAnnotationTag
+
 fake
 macroTag         ::= classicMacroContent {
                      	methods = [
                      		getMacroName
                      		macroContent="macroContent"
+                     	]
+                     }
+annotationTag         ::= annotationMacroContent {
+                     	methods = [
+                     		getAnnotationMacroName
+                     		macroContent="annotationContent"
                      	]
                      }
 
@@ -52,6 +61,9 @@ macroOpenTag     ::= T_MACRO_OPEN_TAG_OPEN classicMacroContent T_MACRO_TAG_CLOSE
 macroCloseTag    ::= T_MACRO_CLOSE_TAG_OPEN classicMacroContent T_MACRO_TAG_CLOSE {
                      	extends = macroTag
                      }
+macroAnnotationTag    ::= T_MACRO_OPEN_TAG_OPEN annotationMacroContent T_MACRO_TAG_CLOSE {
+                     	extends = annotationTag
+                     }
 emptyMacroTag    ::= T_MACRO_OPEN_TAG_OPEN classicMacroContent T_MACRO_TAG_CLOSE_EMPTY {
                      	extends = macroTag
                      }
@@ -60,14 +72,18 @@ emptyMacroTag    ::= T_MACRO_OPEN_TAG_OPEN classicMacroContent T_MACRO_TAG_CLOSE
 private
 classicMacroContent     ::= macroName macroContent?
 
+annotationMacroContent     ::= T_MACRO_ANNOTATION annotationContent
+
+annotationContent     ::= T_MACRO_VAR_DEFINITION T_MACRO_VAR_TYPE
+
 macroContent ::= macroArgs? (T_MACRO_MODIFIERS macroArgs)*
 
 private
-macroName        ::= T_MACRO_NAME
+macroName        ::= T_MACRO_NAME | T_MACRO_ANNOTATION
                    | T_MACRO_NOESCAPE? T_MACRO_SHORTNAME?
 
 private
-macroArgs        ::= (T_MACRO_ARGS | T_MACRO_ARGS_VAR | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER)+
+macroArgs        ::= (T_MACRO_VAR_TYPE | T_MACRO_ARGS | T_MACRO_ARGS_VAR | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER)+
 
 // autoClosedBlock
 autoClosedBlock  ::= &("{block" macroArgs? T_MACRO_MODIFIERS? "}") macroOpenTag structureToken*

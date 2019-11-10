@@ -31,5 +31,8 @@ public class LatteMacro {
 		UNPAIRED,
 
 		AUTO_EMPTY,
+
+		/** used for annotation only */
+		ANNOTATION,
 	}
 }

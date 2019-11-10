@@ -4,6 +4,7 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import com.jantvrdik.intellij.latte.config.LatteConfiguration;
 import com.jantvrdik.intellij.latte.config.LatteMacro;
+import com.jantvrdik.intellij.latte.psi.LatteTypes;
 import org.jetbrains.annotations.NotNull;
 
 import static com.jantvrdik.intellij.latte.psi.LatteTypes.*;
@@ -48,6 +49,27 @@ public class LatteParserUtil extends GeneratedParserUtilBase {
 		return result;
 	}
 
+	public static boolean checkAnnotationMacro(PsiBuilder builder, int level) {
+		if (builder.getTokenType() != T_MACRO_OPEN_TAG_OPEN) return false;
+
+		PsiBuilder.Marker marker = builder.mark();
+		String macroName = getMacroName(builder);
+
+		boolean result;
+		IElementType typ = builder.getTokenType();
+		String type = typ.toString();
+
+		LatteMacro macro = LatteConfiguration.INSTANCE.getMacro(builder.getProject(), macroName);
+		if (macro != null && macro.type != LatteMacro.Type.UNPAIRED) {
+			result = false;
+		} else {
+			result = true;
+		}
+
+		marker.rollbackTo();
+		return typ == T_MACRO_VAR_DEFINITION;
+	}
+
 	@NotNull
 	private static String getMacroName(PsiBuilder builder) {
 		String macroName;
@@ -55,6 +77,7 @@ public class LatteParserUtil extends GeneratedParserUtilBase {
 		consumeTokenFast(builder, T_MACRO_OPEN_TAG_OPEN);
 		consumeTokenFast(builder, T_MACRO_CLOSE_TAG_OPEN);
 		consumeTokenFast(builder, T_MACRO_NOESCAPE);
+		consumeTokenFast(builder, T_MACRO_ANNOTATION);
 		if (nextTokenIsFast(builder, T_MACRO_NAME, T_MACRO_SHORTNAME)) {
 			macroName = builder.getTokenText();
 			assert macroName != null;
