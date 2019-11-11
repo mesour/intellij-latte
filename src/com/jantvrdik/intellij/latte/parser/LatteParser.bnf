@@ -19,7 +19,13 @@ root             ::= (structureToken)* autoClosedBlock?
 
 // macro
 private
-macro            ::= macroComment | macroClassic
+macro            ::= macroComment | latteMacro
+
+latteMacro        ::= macroClassic {
+                            mixin="com.jantvrdik.intellij.latte.psi.impl.LatteMacroElementImpl"
+                            implements="com.jantvrdik.intellij.latte.psi.LatteMacroElement"
+                            methods=[getName setName getNameIdentifier]
+                        }
 
 macroComment     ::= T_MACRO_COMMENT
 macroClassic     ::= <<checkPairMacro true>> (pairMacro | emptyMacro) | <<checkPairMacro false>> unpairedMacro {
@@ -67,7 +73,13 @@ macroName        ::= T_MACRO_NAME
                    | T_MACRO_NOESCAPE? T_MACRO_SHORTNAME?
 
 private
-macroArgs        ::= (T_MACRO_ARGS | T_MACRO_ARGS_VAR | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER)+
+macroArgs        ::= (T_MACRO_ARGS | argsVar | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER)+
+
+argsVar        ::= T_MACRO_ARGS_VAR {
+                        mixin="com.jantvrdik.intellij.latte.psi.impl.LatteVariableElementImpl"
+                        implements="com.jantvrdik.intellij.latte.psi.LatteVariableElement"
+                        methods=[getName setName getNameIdentifier getVariableName]
+                    }
 
 // autoClosedBlock
 autoClosedBlock  ::= &("{block" macroArgs? T_MACRO_MODIFIERS? "}") macroOpenTag structureToken*

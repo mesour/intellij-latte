@@ -114,6 +114,10 @@
 		<indexPatternBuilder implementation="com.jantvrdik.intellij.latte.psi.LatteIndexPatternBuilder"/>
 		<lang.psiStructureViewFactory language="Latte" implementationClass="com.jantvrdik.intellij.latte.editor.LatteStructureViewFactory"/>
 
+		<lang.findUsagesProvider language="Latte" implementationClass="com.jantvrdik.intellij.latte.reference.TestFindUsagesProvider"/>
+
+		<psi.referenceContributor implementation="com.jantvrdik.intellij.latte.reference.LatteReferenceContributor"/>
+
 		<localInspection language="Latte" shortName="ModifierNotAllowed" id="ModifierNotAllowed"
 						 displayName="Modifier not allowed"
 						 groupName="Latte" enabledByDefault="true" level="WARNING"

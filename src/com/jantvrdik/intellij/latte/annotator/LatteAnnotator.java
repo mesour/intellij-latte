@@ -22,12 +22,20 @@ public class LatteAnnotator implements Annotator {
 			LatteMacroTag openTag = ((LatteMacroClassic) element).getOpenTag();
 			LatteMacroTag closeTag = ((LatteMacroClassic) element).getCloseTag();
 
+			PsiElement child = element.getFirstChild().getFirstChild().getNextSibling().getFirstChild();
+
 			String openTagName = openTag.getMacroName();
 			LatteMacro macro = LatteConfiguration.INSTANCE.getMacro(element.getProject(), openTagName);
-			if (macro == null || macro.type == LatteMacro.Type.ATTR_ONLY) {
-				Annotation annotation = holder.createErrorAnnotation(openTag, "Unknown macro {" + openTagName + "}");
-				annotation.registerFix(new AddCustomPairMacro(openTagName));
-				annotation.registerFix(new AddCustomUnpairedMacro(openTagName));
+
+			// probably {$var} macro
+			if (openTagName == "" && child.getNode().getElementType() == LatteTypes.ARGS_VAR) {
+
+			} else {
+				if (macro == null || macro.type == LatteMacro.Type.ATTR_ONLY) {
+					Annotation annotation = holder.createErrorAnnotation(openTag, "Unknown macro {" + openTagName + "}");
+					annotation.registerFix(new AddCustomPairMacro(openTagName));
+					annotation.registerFix(new AddCustomUnpairedMacro(openTagName));
+				}
 			}
 
 			String closeTagName = closeTag != null ? closeTag.getMacroName() : null;
