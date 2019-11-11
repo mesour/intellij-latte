@@ -61,7 +61,7 @@ public class LatteConfiguration {
 		addStandardMacro("l", UNPAIRED);
 		addStandardMacro("r", UNPAIRED);
 
-		addStandardMacro("@var", UNPAIRED);
+		addStandardMacro("annotate", UNPAIRED);
 		addStandardMacro("_", PAIR);
 		addStandardMacro("=", UNPAIRED);
 		addStandardMacro("?", UNPAIRED);
