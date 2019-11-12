@@ -27,6 +27,10 @@ SYMBOL = [_[:letter:]][_0-9[:letter:]]*(-[_0-9[:letter:]]+)* //todo: unicode let
 		return T_MACRO_ARGS_VAR;
 	}
 
+	"\\" [a-zA-Z_][a-zA-Z0-9_\\]* {
+		return T_MACRO_ARGS_VAR_TYPE;
+	}
+
 	{STRING} {
 		return T_MACRO_ARGS_STRING;
 	}

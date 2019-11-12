@@ -1,24 +1,18 @@
 package com.jantvrdik.intellij.latte.utils;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiRecursiveElementVisitor;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.*;
-import com.intellij.psi.search.searches.ReferencesSearch;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.jantvrdik.intellij.latte.LatteFileType;
 import com.jantvrdik.intellij.latte.psi.LatteFile;
-import com.jantvrdik.intellij.latte.psi.LatteMacroElement;
-import com.jantvrdik.intellij.latte.psi.LatteTypes;
 import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class LatteUtil {
@@ -50,7 +44,11 @@ public class LatteUtil {
 		return result != null ? result : Collections.<LatteVariableElement>emptyList();
 	}
 
-	public static List<LatteVariableElement> findVariablesInFile(Project project, VirtualFile file, String key) {
+	public static List<LatteVariableElement> findVariablesInFile(@NotNull Project project, @NotNull VirtualFile file) {
+		return findVariablesInFile(project, file, null);
+	}
+
+	public static List<LatteVariableElement> findVariablesInFile(@NotNull Project project, @NotNull VirtualFile file, @Nullable String key) {
 		List<LatteVariableElement> result = null;
 		LatteFile simpleFile = (LatteFile) PsiManager.getInstance(project).findFile(file);
 		if (simpleFile != null) {
@@ -62,7 +60,7 @@ public class LatteUtil {
 			if (properties != null) {
 				for (LatteVariableElement variable : properties) {
 					String varName = variable.getVariableName();
-					if (key.equals(variable.getVariableName()) && variable.isDefinition()) {
+					if ((key == null || key.equals(variable.getVariableName())) && variable.isDefinition()) {
 						if (result == null) {
 							result = new ArrayList<LatteVariableElement>();
 						}

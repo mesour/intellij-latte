@@ -73,12 +73,18 @@ macroName        ::= T_MACRO_NAME
                    | T_MACRO_NOESCAPE? T_MACRO_SHORTNAME?
 
 private
-macroArgs        ::= (T_MACRO_ARGS | argsVar | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER)+
+macroArgs        ::= (T_MACRO_ARGS | argsVar | argsVarType | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER)+
 
 argsVar        ::= T_MACRO_ARGS_VAR {
                         mixin="com.jantvrdik.intellij.latte.psi.impl.LatteVariableElementImpl"
                         implements="com.jantvrdik.intellij.latte.psi.LatteVariableElement"
                         methods=[getName setName getNameIdentifier getVariableName]
+                    }
+
+argsVarType        ::= T_MACRO_ARGS_VAR_TYPE {
+                        mixin="com.jantvrdik.intellij.latte.psi.impl.LatteVariableTypeElementImpl"
+                        implements="com.jantvrdik.intellij.latte.psi.LatteVariableTypeElement"
+                        methods=[getName setName getNameIdentifier getVariableType]
                     }
 
 // autoClosedBlock

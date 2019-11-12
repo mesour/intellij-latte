@@ -7,12 +7,17 @@ import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.ProcessingContext;
 import com.jantvrdik.intellij.latte.LatteLanguage;
 import com.jantvrdik.intellij.latte.config.LatteConfiguration;
 import com.jantvrdik.intellij.latte.config.LatteMacro;
 import com.jantvrdik.intellij.latte.psi.LatteTypes;
+import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
+import com.jantvrdik.intellij.latte.utils.LatteUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -55,6 +60,25 @@ public class LatteCompletionContributor extends CompletionContributor {
 				result.addAllElements(getAttrMacroCompletions(customMacros));
 			}
 		});
+
+		extend(CompletionType.BASIC, PlatformPatterns.psiElement(LatteTypes.T_MACRO_ARGS_VAR).withLanguage(LatteLanguage.INSTANCE), new CompletionProvider<CompletionParameters>() {
+			@Override
+			protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
+				result.addAllElements(getArgsVarCompletions(parameters.getPosition().getParent(), parameters.getOriginalFile().getVirtualFile()));
+			}
+		});
+
+		extend(
+				CompletionType.BASIC,
+				PlatformPatterns.psiElement()
+					.andOr(
+							PlatformPatterns.or(
+								PlatformPatterns.psiElement().withElementType(LatteTypes.T_MACRO_ARGS_VAR_TYPE),
+								PlatformPatterns.psiElement().withElementType(LatteTypes.T_MACRO_ARGS)
+							)
+						),
+				new ClassCompletionProvider()
+		);
 	}
 
 	/**
@@ -64,6 +88,17 @@ public class LatteCompletionContributor extends CompletionContributor {
 		Map<String, LatteMacro> macros = LatteConfiguration.INSTANCE.getStandardMacros();
 		classicMacrosCompletions = getClassicMacroCompletions(macros);
 		attrMacrosCompletions = getAttrMacroCompletions(macros);
+	}
+
+	/**
+	 * Builds list of lookup elements for code completion of classic macros.
+	 */
+	private List<LookupElement> getArgsVarCompletions(@NotNull PsiElement psiElement, @NotNull VirtualFile file) {
+		List<LookupElement> lookupElements = new ArrayList<LookupElement>();
+		for (LatteVariableElement element : LatteUtil.findVariablesInFile(psiElement.getProject(), file)) {
+			lookupElements.add(LookupElementBuilder.create(element.getVariableName()));
+		}
+		return lookupElements;
 	}
 
 	/**

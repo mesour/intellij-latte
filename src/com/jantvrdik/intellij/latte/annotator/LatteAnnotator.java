@@ -10,7 +10,10 @@ import com.jantvrdik.intellij.latte.intentions.AddCustomAttrOnlyMacro;
 import com.jantvrdik.intellij.latte.intentions.AddCustomPairMacro;
 import com.jantvrdik.intellij.latte.intentions.AddCustomUnpairedMacro;
 import com.jantvrdik.intellij.latte.psi.*;
+import com.jantvrdik.intellij.latte.utils.LatteUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Annotator is mostly used to check semantic rules which can not be easily checked during parsing.
@@ -28,7 +31,16 @@ public class LatteAnnotator implements Annotator {
 			LatteMacro macro = LatteConfiguration.INSTANCE.getMacro(element.getProject(), openTagName);
 
 			// probably {$var} macro
-			if (openTagName == "" && child.getNode().getElementType() == LatteTypes.ARGS_VAR) {
+			if (child instanceof LatteVariableElement) {
+				String variableName = ((LatteVariableElement) child).getVariableName();
+				List<LatteVariableElement> found = LatteUtil.findVariablesInFile(
+						child.getProject(),
+						child.getContainingFile().getVirtualFile(),
+						variableName
+				);
+				if (found.size() == 0) {
+					holder.createErrorAnnotation(child, "Undefined variable '" + variableName + "'");
+				}
 
 			} else {
 				if (macro == null || macro.type == LatteMacro.Type.ATTR_ONLY) {
