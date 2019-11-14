@@ -9,7 +9,7 @@ import com.jantvrdik.intellij.latte.psi.LatteTypes;
 import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
 import org.jetbrains.annotations.*;
 
-public class TestFindUsagesProvider implements FindUsagesProvider {
+public class LatteFindUsagesProvider implements FindUsagesProvider {
 	@Nullable
 	@Override
 	public WordsScanner getWordsScanner() {
@@ -35,7 +35,7 @@ public class TestFindUsagesProvider implements FindUsagesProvider {
 	@NotNull
 	@Override
 	public String getType(@NotNull PsiElement element) {
-		if (element instanceof LatteVariableElement) {
+		if (element instanceof LatteVariableElement && !((LatteVariableElement) element).isProperty()) {
 			return "latte variable";
 		} else {
 			return "";
@@ -45,7 +45,7 @@ public class TestFindUsagesProvider implements FindUsagesProvider {
 	@NotNull
 	@Override
 	public String getDescriptiveName(@NotNull PsiElement element) {
-		if (element instanceof LatteVariableElement) {
+		if (element instanceof LatteVariableElement && !((LatteVariableElement) element).isProperty()) {
 			return ((LatteVariableElement) element).getVariableName();
 		} else {
 			return "";
@@ -55,7 +55,7 @@ public class TestFindUsagesProvider implements FindUsagesProvider {
 	@NotNull
 	@Override
 	public String getNodeText(@NotNull PsiElement element, boolean useFullName) {
-		if (element instanceof LatteVariableElement) {
+		if (element instanceof LatteVariableElement && !((LatteVariableElement) element).isProperty()) {
 			return ((LatteVariableElement) element).getNode().getText();
 		} else {
 			return "";

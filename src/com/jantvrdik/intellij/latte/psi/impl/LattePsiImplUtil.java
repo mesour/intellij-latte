@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.tree.TokenSet;
 import com.jantvrdik.intellij.latte.psi.*;
+import com.jantvrdik.intellij.latte.psi.factories.LattePhpMethodFactory;
 import com.jantvrdik.intellij.latte.psi.factories.LatteVariableFactory;
 import com.jantvrdik.intellij.latte.psi.factories.LatteVariableTypeFactory;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +36,11 @@ public class LattePsiImplUtil {
 		return (argsNode != null ? "=" : "");
 	}
 
-	public static String getName(PsiNameIdentifierOwner element) {
+	public static String getName(LatteVariableElement element) {
 		return element.getFirstChild().getText();
 	}
 
-	public static PsiElement setName(PsiNameIdentifierOwner element, String newName) {
+	public static PsiElement setName(LatteVariableElement element, String newName) {
 		ASTNode keyNode = element.getNode();
 		if (keyNode != null) {
 
@@ -50,7 +51,7 @@ public class LattePsiImplUtil {
 		return element;
 	}
 
-	public static PsiElement getNameIdentifier(PsiNameIdentifierOwner element) {
+	public static PsiElement getNameIdentifier(LatteVariableElement element) {
 		ASTNode keyNode = element.getNode().findChildByType(T_MACRO_ARGS_VAR);
 		if (keyNode != null) {
 			return keyNode.getPsi();
@@ -83,8 +84,36 @@ public class LattePsiImplUtil {
 		}
 	}
 
+	public static String getName(LattePhpMethod element) {
+		return element.getFirstChild().getText();
+	}
+
+	public static PsiElement setName(LattePhpMethod element, String newName) {
+		ASTNode keyNode = element.getNode();
+		if (keyNode != null) {
+
+			LattePhpMethod property = LattePhpMethodFactory.createPhpMethod(element.getProject(), newName);
+			ASTNode newKeyNode = property.getFirstChild().getNode();
+			element.getNode().replaceChild(keyNode, newKeyNode);
+		}
+		return element;
+	}
+
+	public static PsiElement getNameIdentifier(LattePhpMethod element) {
+		ASTNode keyNode = element.getNode().findChildByType(T_PHP_METHOD);
+		if (keyNode != null) {
+			return keyNode.getPsi();
+		} else {
+			return null;
+		}
+	}
+
 	public static String getVariableName(LatteVariableElement element) {
 		return element.getFirstChild().getText();
+	}
+
+	public static String getMethodName(LattePhpMethod element) {
+		return element.getText();
 	}
 
 	public static String getVariableType(LatteVariableTypeElement element) {

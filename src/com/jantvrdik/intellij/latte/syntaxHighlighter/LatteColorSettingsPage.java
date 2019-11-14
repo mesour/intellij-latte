@@ -22,6 +22,7 @@ public class LatteColorSettingsPage implements ColorSettingsPage {
 		new AttributesDescriptor("Macro delimiters", LatteSyntaxHighlighter.MACRO_DELIMITERS),
 		new AttributesDescriptor("Macro comment", LatteSyntaxHighlighter.MACRO_COMMENT),
 		new AttributesDescriptor("Attribute macro name", LatteSyntaxHighlighter.HTML_NATTR_NAME),
+		new AttributesDescriptor("PHP method", LatteSyntaxHighlighter.PHP_METHOD),
 	};
 
 	@Nullable

@@ -12,7 +12,7 @@ import static com.jantvrdik.intellij.latte.psi.LatteTypes.*;
 %unicode
 %ignorecase
 
-
+WHITE_SPACE=[ \t\r\n]+
 STRING = {STRING_SQ} | {STRING_DQ}
 STRING_SQ = "'" ("\\" [^] | [^'\\])* "'"
 STRING_DQ = "\"" ("\\" [^] | [^\"\\])* "\""
@@ -20,15 +20,10 @@ SYMBOL = [_[:letter:]][_0-9[:letter:]]*(-[_0-9[:letter:]]+)* //todo: unicode let
 
 %%
 
-
 <YYINITIAL> {
 
-	"$" [a-zA-Z_][a-zA-Z0-9_]* {
-		return T_MACRO_ARGS_VAR;
-	}
-
-	"\\" [a-zA-Z_][a-zA-Z0-9_\\]* {
-		return T_MACRO_ARGS_VAR_TYPE;
+	("\\" | "$") .+ {
+		return T_PHP_CONTENT;
 	}
 
 	{STRING} {

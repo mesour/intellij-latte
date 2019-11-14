@@ -1,22 +1,18 @@
 package com.jantvrdik.intellij.latte.completion;
 
-import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionProvider;
-import com.intellij.codeInsight.completion.CompletionResultSet;
-import com.intellij.codeInsight.completion.PrefixMatcher;
+import com.intellij.codeInsight.completion.*;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import com.jantvrdik.intellij.latte.psi.LatteTypes;
+import com.jantvrdik.intellij.latte.utils.LattePhpUtil;
 import com.jetbrains.php.PhpIndex;
 import com.jetbrains.php.completion.PhpLookupElement;
 import com.jetbrains.php.completion.insert.PhpReferenceInsertHandler;
-import com.jetbrains.php.lang.psi.elements.PhpClass;
 import com.jetbrains.php.lang.psi.elements.PhpNamedElement;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,14 +47,9 @@ public class ClassCompletionProvider extends CompletionProvider<CompletionParame
 			prefixMatcher = prefixMatcher.cloneWithPrefix(prefix.substring(index + 1));
 		}
 
-		Collection<PhpNamedElement> variants = new THashSet<PhpNamedElement>();
-		PhpIndex phpIndex = PhpIndex.getInstance(params.getPosition().getProject());
-		Collection<String> classNames = phpIndex.getAllClassNames(prefixMatcher);
-
-		for (String name : classNames) {
-			variants.addAll(filterClasses(phpIndex.getClassesByName(name), namespace));
-			variants.addAll(filterClasses(phpIndex.getInterfacesByName(name), namespace));
-		}
+		Project project = params.getPosition().getProject();
+		Collection<String> classNames = LattePhpUtil.getAllExistingClassNames(project, prefixMatcher);
+		Collection<PhpNamedElement> variants = LattePhpUtil.getAllClassNamesAndInterfaces(project, classNames);
 
 		// Add variants
 		for (PhpNamedElement item : variants) {
@@ -76,21 +67,6 @@ public class ClassCompletionProvider extends CompletionProvider<CompletionParame
 
 			results.addElement(lookupItem);
 		}
-	}
-
-	private Collection<PhpClass> filterClasses(Collection<PhpClass> classes, String namespace) {
-		if (namespace == null) {
-			return classes;
-		}
-		namespace = "\\" + namespace + "\\";
-		Collection<PhpClass> result = new ArrayList<PhpClass>();
-		for (PhpClass cls : classes) {
-			String classNs = cls.getNamespaceName();
-			if (classNs.equals(namespace) || classNs.startsWith(namespace)) {
-				result.add(cls);
-			}
-		}
-		return result;
 	}
 
 	private static boolean isIncompleteKey(PsiElement el) {

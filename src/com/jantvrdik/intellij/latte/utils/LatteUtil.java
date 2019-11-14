@@ -9,7 +9,10 @@ import com.intellij.psi.search.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.jantvrdik.intellij.latte.LatteFileType;
 import com.jantvrdik.intellij.latte.psi.LatteFile;
+import com.jantvrdik.intellij.latte.psi.LatteTypes;
 import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
+import com.jetbrains.php.PhpIndex;
+import com.jetbrains.php.lang.psi.elements.PhpClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,11 +47,45 @@ public class LatteUtil {
 		return result != null ? result : Collections.<LatteVariableElement>emptyList();
 	}
 
+	public static Collection<PhpClass> findPhpClasses(PsiElement psiElement) {
+		String variableType = findVariableType(psiElement);
+		if (variableType == null) {
+			return null;
+		}
+		return LattePhpUtil.getClassesByFQN(psiElement.getProject(), variableType);
+	}
+
+	@Nullable
+	public static String findVariableType(PsiElement psiElement) {
+		PsiElement prev = LatteElementFinderUtil.findPrevType(psiElement, LatteTypes.T_MACRO_ARGS_VAR_TYPE, 3);
+		if (prev != null) {
+			return prev.getText();
+		}
+
+		PsiElement parent = LatteElementFinderUtil.findPrevType(psiElement.getParent(), LatteTypes.T_MACRO_ARGS_VAR_TYPE, 3);
+		if (parent != null) {
+			return parent.getText();
+		}
+		return null;
+	}
+
 	public static List<LatteVariableElement> findVariablesInFile(@NotNull Project project, @NotNull VirtualFile file) {
-		return findVariablesInFile(project, file, null);
+		return findVariablesInFile(project, file, null, false, false);
+	}
+
+	public static List<LatteVariableElement> findVariablesInFile(@NotNull Project project, @NotNull VirtualFile file, boolean withDefinitions) {
+		return findVariablesInFile(project, file, null, withDefinitions, false);
 	}
 
 	public static List<LatteVariableElement> findVariablesInFile(@NotNull Project project, @NotNull VirtualFile file, @Nullable String key) {
+		return findVariablesInFile(project, file, key, false, false);
+	}
+
+	public static List<LatteVariableElement> findPropertiesInFile(@NotNull Project project, @NotNull VirtualFile file, @Nullable String key) {
+		return findVariablesInFile(project, file, key, false, true);
+	}
+
+	private static List<LatteVariableElement> findVariablesInFile(@NotNull Project project, @NotNull VirtualFile file, @Nullable String key, boolean withDefinitions, boolean onlyProperties) {
 		List<LatteVariableElement> result = null;
 		LatteFile simpleFile = (LatteFile) PsiManager.getInstance(project).findFile(file);
 		if (simpleFile != null) {
@@ -57,15 +94,13 @@ public class LatteUtil {
 				findElementsByType(properties, element);
 			}
 
-			if (properties != null) {
-				for (LatteVariableElement variable : properties) {
-					String varName = variable.getVariableName();
-					if ((key == null || key.equals(variable.getVariableName())) && variable.isDefinition()) {
-						if (result == null) {
-							result = new ArrayList<LatteVariableElement>();
-						}
-						result.add(variable);
+			for (LatteVariableElement variable : properties) {
+				String varName = variable.getVariableName();
+				if ((key == null || key.equals(variable.getVariableName())) && ((onlyProperties && variable.isProperty()) || (withDefinitions || variable.isDefinition()))) {
+					if (result == null) {
+						result = new ArrayList<LatteVariableElement>();
 					}
+					result.add(variable);
 				}
 			}
 		}

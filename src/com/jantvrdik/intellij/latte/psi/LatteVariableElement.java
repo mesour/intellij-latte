@@ -6,6 +6,8 @@ public interface LatteVariableElement extends PsiNameIdentifierOwner {
 
     public abstract String getVariableName();
 
+    public abstract boolean isProperty();
+
     public abstract boolean isDefinition();
 
 }

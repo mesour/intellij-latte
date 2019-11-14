@@ -1,6 +1,6 @@
 package com.jantvrdik.intellij.latte.psi;
 
-import com.intellij.psi.PsiNameIdentifierOwner;
+import com.intellij.psi.PsiElement;
 
-public interface LatteMacroElement extends PsiNameIdentifierOwner {
+public interface LatteMacroElement extends PsiElement {
 }

@@ -3,7 +3,6 @@ package com.jantvrdik.intellij.latte.syntaxHighlighter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
-import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
@@ -23,6 +22,7 @@ public class LatteSyntaxHighlighter extends SyntaxHighlighterBase {
 	public static final TextAttributesKey MACRO_ARGS_NUMBER = createTextAttributesKey("LATTE_MACRO_ARGS_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
 	public static final TextAttributesKey MACRO_MODIFIERS = createTextAttributesKey("LATTE_MACRO_MODIFIERS", HighlighterColors.TEXT);
 	public static final TextAttributesKey MACRO_COMMENT = createTextAttributesKey("LATTE_MACRO_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
+	public static final TextAttributesKey PHP_METHOD = createTextAttributesKey("LATTE_PHP_METHOD", DefaultLanguageHighlighterColors.INSTANCE_METHOD);
 
 
 	@NotNull
@@ -45,6 +45,9 @@ public class LatteSyntaxHighlighter extends SyntaxHighlighterBase {
 
 		} else if (token == LatteTypes.T_MACRO_ARGS_VAR) {
 			return pack(MACRO_ARGS_VAR);
+
+		} else if (token == LatteTypes.T_PHP_METHOD) {
+			return pack(PHP_METHOD);
 
 		} else if (token == LatteTypes.T_MACRO_ARGS_STRING) {
 			return pack(MACRO_ARGS_STRING);

@@ -56,7 +56,7 @@ STRING_DQ = "\"" ("\\" [^] | [^\"\\])* "\""
 
 	{NAME_FULL} ("::" | "(" | "\\") {
 		yybegin(ARGS);
-		return T_MACRO_CONTENT;
+		return T_PHP_CONTENT;
 	}
 }
 
