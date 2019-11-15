@@ -19,14 +19,14 @@ root             ::= (structureToken)* autoClosedBlock?
 
 // macro
 private
-macro            ::= macroComment | latteMacro
+macro            ::= macroAnnotation | macroComment | latteMacro
 
 latteMacro        ::= macroClassic {
                             mixin="com.jantvrdik.intellij.latte.psi.impl.LatteMacroElementImpl"
                             implements="com.jantvrdik.intellij.latte.psi.LatteMacroElement"
-                            methods=[getName setName getNameIdentifier]
                         }
 
+macroAnnotation  ::= T_ANNOTATION_OPEN_TAG_OPEN T_ANNOTATION_TAG_OPEN T_WHITESPACE? argsVar T_WHITESPACE? (T_ANNOTATION_OPERATOR T_WHITESPACE? argsVarType?)? T_WHITESPACE? T_ANNOTATION_TAG_CLOSE T_ANNOTATION_OPEN_TAG_CLOSE
 macroComment     ::= T_MACRO_COMMENT
 macroClassic     ::= <<checkPairMacro true>> (pairMacro | emptyMacro) | <<checkPairMacro false>> unpairedMacro {
                      	methods = [
@@ -64,14 +64,17 @@ emptyMacroTag    ::= T_MACRO_OPEN_TAG_OPEN classicMacroContent T_MACRO_TAG_CLOSE
 
 
 private
-classicMacroContent     ::= (macroName (variableDefinition)) | ("for " forCycle) | ("foreach " phpContent) | (macroName (phpContent | macroContent?))
+classicMacroContent     ::= ("var " (variableDefinition)) | ("for " forCycle) | ("foreach " foreach) | (macroName (phpContent | macroContent?))
 
 macroContent ::= macroArgs? (T_MACRO_MODIFIERS macroArgs)*
 
 phpContent ::= foreach | phpArgs
 
 private
-phpArgs ::= argsVar | argsVarType | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER | phpMethod
+phpArgs ::= argsVar | argsVarType | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER | phpMethod | phpOperators
+
+private
+phpOperators ::= "=" | "=>" | T_PHP_OPERATOR
 
 private
 macroName        ::= T_MACRO_NAME
@@ -81,9 +84,9 @@ private
 macroArgs        ::= macroArg+
 
 private
-macroArg        ::= T_MACRO_ARGS | argsVar | argsVarType | T_MACRO_ARGS_STRING | T_MACRO_ARGS_NUMBER
+macroArg        ::= T_MACRO_ARGS | phpArgs
 
-argsVar        ::= T_MACRO_ARGS_VAR {
+argsVar        ::= T_MACRO_ARGS_VAR phpSubMethod* {
                         mixin="com.jantvrdik.intellij.latte.psi.impl.LatteVariableElementImpl"
                         implements="com.jantvrdik.intellij.latte.psi.LatteVariableElement"
                         methods=[getName setName getNameIdentifier getVariableName]
@@ -95,7 +98,7 @@ argsPhpMethod        ::= T_PHP_METHOD {
                         methods=[getName setName getNameIdentifier getMethodName]
                     }
 
-argsVarType        ::= T_MACRO_ARGS_VAR_TYPE (T_PHP_DOUBLE_COLON (phpMethod | T_PHP_CLASS | argsVar))? {
+argsVarType        ::= T_MACRO_ARGS_VAR_TYPE (T_PHP_DOUBLE_COLON (phpMethod | T_PHP_CLASS | argsVar)?)? {
                         mixin="com.jantvrdik.intellij.latte.psi.impl.LatteVariableTypeElementImpl"
                         implements="com.jantvrdik.intellij.latte.psi.LatteVariableTypeElement"
                         methods=[getName setName getNameIdentifier getVariableType]
@@ -105,7 +108,7 @@ private
 foreach        ::= T_WHITESPACE? phpArgs T_WHITESPACE? "as" T_WHITESPACE? (argsVar | arrayOfVariables) [ T_WHITESPACE? "=>" T_WHITESPACE? (argsVar | arrayOfVariables) ]
 
 private
-forCycle        ::= T_WHITESPACE? variableDefinition ";" T_WHITESPACE? argsVar T_PHP_OPERATOR T_WHITESPACE? phpArgs T_WHITESPACE? ";" T_WHITESPACE? macroArg*
+forCycle        ::= T_WHITESPACE? variableDefinition ";" T_WHITESPACE? argsVar phpOperators T_WHITESPACE? phpArgs T_WHITESPACE? ";" T_WHITESPACE? macroArg*
 
 private
 arrayOfVariables        ::= "[" argsVar ( T_WHITESPACE? "," T_WHITESPACE? argsVar )* "]"
@@ -114,7 +117,15 @@ private
 variableDefinition        ::= argsVar T_WHITESPACE? "=" T_WHITESPACE? phpArgs
 
 private
-phpMethod       ::= argsPhpMethod ("()" | ("(" phpArgs [ T_WHITESPACE? { "," T_WHITESPACE? phpArgs } ] ")"))?
+phpMethod       ::= argsPhpMethod (("()" | ("(" phpMethodArgs ")")) phpSubMethod*)? phpArgs?
+
+phpMethodArgs       ::= (phpArgs ( T_WHITESPACE? "," T_WHITESPACE? phpArgs )*) {
+                        mixin="com.jantvrdik.intellij.latte.psi.impl.LattePhpMethodArgsElementImpl"
+                        implements="com.jantvrdik.intellij.latte.psi.LattePhpMethodArgsElement"
+                    }
+
+private
+phpSubMethod      ::= (T_PHP_OBJECT_OPERATOR | T_PHP_DOUBLE_COLON) phpMethod?
 
 // autoClosedBlock
 autoClosedBlock  ::= &("{block" macroArgs? T_MACRO_MODIFIERS? "}") macroOpenTag structureToken*
@@ -141,4 +152,4 @@ structureToken   ::= outerHtml | macro | netteAttr
 
 
 private
-topLevelTokens   ::= T_MACRO_CLASSIC T_MACRO_CONTENT T_PHP_CONTENT topLevelTokens
+topLevelTokens   ::= T_MACRO_CLASSIC T_MACRO_CONTENT T_PHP_CONTENT T_MACRO_ANNOTATION topLevelTokens

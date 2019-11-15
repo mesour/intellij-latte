@@ -5,6 +5,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.psi.PsiElement;
 import com.jantvrdik.intellij.latte.utils.LattePhpUtil;
+import com.jantvrdik.intellij.latte.utils.PsiPositionedElement;
 import com.jetbrains.php.lang.psi.elements.Method;
 import com.jetbrains.php.lang.psi.elements.PhpModifier;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +81,7 @@ public class LatteAnnotator implements Annotator {
 					for (Field field : phpClass.getFields()) {
 						if (!field.isConstant() && ("$" + field.getName()).equals(variableName)) {
 							checkVisibility(holder, field.getModifier(), element, variableName, "property");
+							checkStatic(holder, field.getModifier(), element, variableName, "property");
 							isFound = true;
 						}
 					}
@@ -93,7 +95,7 @@ public class LatteAnnotator implements Annotator {
 			}
 
 		} else {
-			List<LatteVariableElement> found = LatteUtil.findVariablesInFile(
+			List<PsiPositionedElement> found = LatteUtil.findVariablesInFile(
 					element.getProject(),
 					element.getContainingFile().getVirtualFile(),
 					variableName
@@ -130,25 +132,38 @@ public class LatteAnnotator implements Annotator {
 					for (Method method : phpClass.getMethods()) {
 						if (method.getName().equals(methodName)) {
 							checkVisibility(holder, method.getModifier(), element, methodName, "method");
+							checkStatic(holder, method.getModifier(), element, methodName, "method");
 							isFound = true;
 						}
 					}
 				}
 
 			} else {
-				for (PhpClass phpClass : phpClasses) {
-					for (Field field : phpClass.getFields()) {
-						if (field.isConstant() && field.getName().equals(methodName)) {
-							checkVisibility(holder, field.getModifier(), element, methodName, "constant");
-							isFound = true;
+				if (LattePhpUtil.isNativeClassConstant(methodName)) {
+					isFound = true;
+				} else {
+					for (PhpClass phpClass : phpClasses) {
+						for (Field field : phpClass.getFields()) {
+							if (field.isConstant() && field.getName().equals(methodName)) {
+								checkVisibility(holder, field.getModifier(), element, methodName, "constant");
+								boolean isStatic = LattePhpUtil.isStatic(element);
+								if (isStatic && !field.getModifier().isStatic()) {
+									holder.createWarningAnnotation(element, "Constant " + methodName + " is not static but called statically");
+								} else if (!isStatic) {
+									holder.createWarningAnnotation(element, "Constant must be called statically");
+								}
+								isFound = true;
+							}
 						}
 					}
 				}
 			}
 
 			if (!isFound) {
+				boolean isGlobal = LattePhpUtil.isGlobal(element);
 				holder.createErrorAnnotation(element, (isMethod ? "Method" : "Constant") + " '" + methodName + "' not found");
 			}
+
 		} else {
 			holder.createWarningAnnotation(element, resolveClassNotFound(isMethod ? "method" : "constant", methodName));
 		}
@@ -165,6 +180,21 @@ public class LatteAnnotator implements Annotator {
 			holder.createWarningAnnotation(element, resolveVisibilityError("private", type, methodName));
 		} else if (modifier.isProtected()) {
 			holder.createWarningAnnotation(element, resolveVisibilityError("protected", type, methodName));
+		}
+	}
+
+	private static void checkStatic(
+			@NotNull AnnotationHolder holder,
+			@NotNull PhpModifier modifier,
+			@NotNull PsiElement element,
+			@NotNull String methodName,
+			@NotNull String type
+	) {
+		boolean isStatic = LattePhpUtil.isStatic(element);
+		if (isStatic && !modifier.isStatic()) {
+			holder.createWarningAnnotation(element, LatteUtil.capitalizeFirstLetter(type) +  " " + methodName + " is not static but called statically");
+		} else if (!isStatic && modifier.isStatic()) {
+			holder.createWarningAnnotation(element, type +  " " + methodName + " is static but called non statically");
 		}
 	}
 

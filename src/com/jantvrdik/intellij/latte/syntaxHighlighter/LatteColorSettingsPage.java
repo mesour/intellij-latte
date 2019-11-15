@@ -23,6 +23,7 @@ public class LatteColorSettingsPage implements ColorSettingsPage {
 		new AttributesDescriptor("Macro comment", LatteSyntaxHighlighter.MACRO_COMMENT),
 		new AttributesDescriptor("Attribute macro name", LatteSyntaxHighlighter.HTML_NATTR_NAME),
 		new AttributesDescriptor("PHP method", LatteSyntaxHighlighter.PHP_METHOD),
+		new AttributesDescriptor("PHP annotation", LatteSyntaxHighlighter.PHP_ANNOTATION),
 	};
 
 	@Nullable

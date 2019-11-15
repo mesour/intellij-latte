@@ -18,6 +18,7 @@ public class LatteLexer extends LayeredLexer {
 		registerLayer(macroLexer, LatteTypes.T_MACRO_CLASSIC);
 		registerLayer(createContentAdapter(), LatteTypes.T_MACRO_CONTENT);
 		registerLayer(new LattePhpLexerAdapter(), LatteTypes.T_PHP_CONTENT);
+		registerLayer(new LattePhpAnnotationLexerAdapter(), LatteTypes.T_MACRO_ANNOTATION);
 	}
 
 	private LayeredLexer createContentAdapter() {

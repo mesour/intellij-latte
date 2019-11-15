@@ -31,6 +31,7 @@ import static com.jantvrdik.intellij.latte.psi.LatteTypes.*;
 %state HTML_COMMENT
 
 WHITE_SPACE=[ \t\r\n]+
+MACRO_ANNOTATION = "{**" ~"*}"
 MACRO_COMMENT = "{*" ~"*}"
 MACRO_CLASSIC = "{" [^ \t\r\n'\"{}] ({MACRO_STRING} | "{" {MACRO_STRING}* "}")* "}"
 MACRO_STRING = {MACRO_STRING_SQ} | {MACRO_STRING_DQ} | {MACRO_STRING_UQ}
@@ -47,6 +48,10 @@ MACRO_STRING_UQ = [^'\"{}]
 }
 
 <HTML_TEXT, SCRIPT_TAG, SCRIPT_CDATA, STYLE_TAG, STYLE_CDATA, HTML_TAG, HTML_ATTR_SQ, HTML_ATTR_DQ, HTML_COMMENT> {
+    {MACRO_ANNOTATION} / [^]* {
+        return T_MACRO_ANNOTATION;
+    }
+
 	{MACRO_COMMENT} / [^]* {
 		return T_MACRO_COMMENT;
 	}

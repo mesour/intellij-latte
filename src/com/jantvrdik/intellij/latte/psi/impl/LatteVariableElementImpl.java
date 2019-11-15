@@ -8,6 +8,7 @@ import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.jantvrdik.intellij.latte.psi.LatteTypes;
 import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
 import com.jantvrdik.intellij.latte.utils.LatteElementFinderUtil;
+import com.jantvrdik.intellij.latte.utils.LattePhpUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,11 +18,28 @@ public abstract class LatteVariableElementImpl extends ASTWrapperPsiElement impl
     }
 
     public boolean isProperty() {
-        return this.getPrevSibling() != null && this.getPrevSibling().getNode().getElementType() == LatteTypes.T_PHP_DOUBLE_COLON;
+        return this.isStatic();
+    }
+
+    public boolean isAnnotation() {
+        PsiElement prev = LatteElementFinderUtil.findPrevWithSkippedWhitespaces(this);
+        return prev != null && prev.getText().equals("**");
+    }
+
+    public boolean isStatic() {
+        return LattePhpUtil.isStatic(this);
+    }
+
+    public boolean isGlobal() {
+        return LattePhpUtil.isGlobal(this);
     }
 
     public boolean isDefinition()
     {
+        if (isAnnotation()) {
+            return true;
+        }
+
         if (isProperty()) {
             return false;
         }

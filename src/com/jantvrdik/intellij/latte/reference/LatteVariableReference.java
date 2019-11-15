@@ -7,6 +7,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
 import com.jantvrdik.intellij.latte.utils.LatteUtil;
+import com.jantvrdik.intellij.latte.utils.PsiPositionedElement;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -23,10 +24,10 @@ public class LatteVariableReference extends PsiReferenceBase<PsiElement> impleme
 	@Override
 	public ResolveResult[] multiResolve(boolean incompleteCode) {
 		Project project = myElement.getProject();
-		final List<LatteVariableElement> properties = LatteUtil.findVariablesInFile(project, getElement().getContainingFile().getVirtualFile(), key);
+		final List<PsiPositionedElement> properties = LatteUtil.findVariablesInFile(project, getElement().getContainingFile().getVirtualFile(), key);
 		List<ResolveResult> results = new ArrayList<ResolveResult>();
-		for (LatteVariableElement property : properties) {
-			results.add(new PsiElementResolveResult(property));
+		for (PsiPositionedElement property : properties) {
+			results.add(new PsiElementResolveResult(property.getElement()));
 		}
 		return results.toArray(new ResolveResult[results.size()]);
 	}

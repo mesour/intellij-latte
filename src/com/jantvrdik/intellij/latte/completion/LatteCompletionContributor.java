@@ -14,11 +14,9 @@ import com.intellij.util.ProcessingContext;
 import com.jantvrdik.intellij.latte.LatteLanguage;
 import com.jantvrdik.intellij.latte.config.LatteConfiguration;
 import com.jantvrdik.intellij.latte.config.LatteMacro;
-import com.jantvrdik.intellij.latte.psi.LattePhpMethod;
 import com.jantvrdik.intellij.latte.psi.LatteTypes;
 import com.jantvrdik.intellij.latte.psi.LatteVariableElement;
-import com.jantvrdik.intellij.latte.utils.LatteElementFinderUtil;
-import com.jantvrdik.intellij.latte.utils.LatteUtil;
+import com.jantvrdik.intellij.latte.utils.*;
 import com.jetbrains.php.lang.psi.elements.Field;
 import com.jetbrains.php.lang.psi.elements.Method;
 import com.jetbrains.php.lang.psi.elements.PhpClass;
@@ -29,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Provides basic code completion for names of both classic and attribute macros.
@@ -68,10 +65,12 @@ public class LatteCompletionContributor extends CompletionContributor {
 			}
 		});
 
-		extend(CompletionType.BASIC, PlatformPatterns.psiElement(LatteTypes.T_PHP_METHOD).withLanguage(LatteLanguage.INSTANCE), new CompletionProvider<CompletionParameters>() {
+		extend(
+				CompletionType.BASIC,
+				PlatformPatterns.psiElement(LatteTypes.T_PHP_METHOD).withLanguage(LatteLanguage.INSTANCE), new CompletionProvider<CompletionParameters>() {
 			@Override
 			protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
-				result.addAllElements(getMethodCompletions(parameters.getPosition(), parameters.getOriginalFile().getVirtualFile()));
+				result.addAllElements(getMethodCompletions(parameters.getPosition()));
 			}
 		});
 
@@ -81,9 +80,9 @@ public class LatteCompletionContributor extends CompletionContributor {
 				PsiElement prev = LatteElementFinderUtil.findPrevWithSkippedWhitespaces(parameters.getPosition());
 				List<LookupElement> elements;
 				if (prev != null && prev.getNode().getElementType() == LatteTypes.T_PHP_DOUBLE_COLON) {
-					elements = getMethodCompletions(parameters.getPosition(), parameters.getOriginalFile().getVirtualFile());
+					elements = getMethodCompletions(parameters.getPosition());
 				} else {
-					elements = getArgsVarCompletions(parameters.getPosition().getParent(), parameters.getOriginalFile().getVirtualFile());
+					elements = getArgsVarCompletions(parameters.getPosition(), parameters.getOriginalFile().getVirtualFile());
 				}
 				result.addAllElements(elements);
 			}
@@ -111,30 +110,42 @@ public class LatteCompletionContributor extends CompletionContributor {
 		attrMacrosCompletions = getAttrMacroCompletions(macros);
 	}
 
-	private List<LookupElement> getArgsVarCompletions(@NotNull PsiElement psiElement, @NotNull VirtualFile file) {
+	private List<LookupElement> getArgsVarCompletions(@NotNull PsiElement psiElement, @NotNull VirtualFile virtualFile) {
 		List<LookupElement> lookupElements = new ArrayList<LookupElement>();
-		for (LatteVariableElement element : LatteUtil.findVariablesInFile(psiElement.getProject(), file)) {
-			lookupElements.add(LookupElementBuilder.create(element.getVariableName()));
+		for (PsiPositionedElement element : LatteUtil.findVariablesInFileBeforeElement(psiElement, virtualFile)) {
+			if (!(element.getElement() instanceof LatteVariableElement)) {
+				continue;
+			}
+			lookupElements.add(LookupElementBuilder.create(((LatteVariableElement) element.getElement()).getVariableName()));
 		}
 		return lookupElements;
 	}
 
-	private List<LookupElement> getMethodCompletions(@NotNull PsiElement psiElement, @NotNull VirtualFile file) {
+	private List<LookupElement> getMethodCompletions(@NotNull PsiElement psiElement) {
+		boolean isStatic = LattePhpUtil.isStatic(psiElement);
+
 		List<LookupElement> lookupElements = new ArrayList<LookupElement>();
-		Collection<PhpClass> phpClasses = LatteUtil.findPhpClasses(psiElement);
+		LattePhpVariableType variableType = LatteElementFinderUtil.findMethodReturnType(psiElement);
+		if (variableType == null || !variableType.isClassOrInterfaceType()) {
+			return lookupElements;
+		}
+
+		Collection<PhpClass> phpClasses = variableType.getPhpClasses(psiElement.getProject());
 		if (phpClasses == null) {
 			return lookupElements;
 		}
 
 		for (PhpClass phpClass : phpClasses) {
 			for (Method method : phpClass.getMethods()) {
-				if (method.getModifier().isPublic()) {
+				PhpModifier modifier = method.getModifier();
+				if (modifier.isPublic() && canShowCompletionElement(isStatic, modifier)) {
 					lookupElements.add(LookupElementBuilder.createWithSmartPointer(method.getName() + "(", method));
 				}
 			}
 
 			for (Field field : phpClass.getFields()) {
-				if (field.getModifier().isPublic()) {
+				PhpModifier modifier = field.getModifier();
+				if (modifier.isPublic() && (field.isConstant() || canShowCompletionElement(isStatic, modifier))) {
 					if (field.isConstant()) {
 						lookupElements.add(LookupElementBuilder.create(field.getName()));
 					} else {
@@ -142,8 +153,18 @@ public class LatteCompletionContributor extends CompletionContributor {
 					}
 				}
 			}
+
+			if (isStatic) {
+				for (String nativeConstant : LattePhpUtil.getNativeClassConstants()) {
+					lookupElements.add(LookupElementBuilder.create(nativeConstant));
+				}
+			}
 		}
 		return lookupElements;
+	}
+
+	private boolean canShowCompletionElement(boolean isStatic, @NotNull PhpModifier modifier) {
+		return (isStatic && modifier.isStatic()) || (!isStatic && !modifier.isStatic());
 	}
 
 	/**

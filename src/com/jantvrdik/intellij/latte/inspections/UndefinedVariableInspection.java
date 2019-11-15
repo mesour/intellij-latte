@@ -7,6 +7,7 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.psi.PsiFile;
 import com.jantvrdik.intellij.latte.psi.*;
 import com.jantvrdik.intellij.latte.utils.LatteUtil;
+import com.jantvrdik.intellij.latte.utils.PsiPositionedElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,12 +33,16 @@ public class UndefinedVariableInspection extends LocalInspectionTool {
 			return null;
 		}
 
-		List<LatteVariableElement> variables = LatteUtil.findVariablesInFile(manager.getProject(), file.getVirtualFile(), true);
+		List<PsiPositionedElement> variables = LatteUtil.findVariablesInFile(manager.getProject(), file.getVirtualFile(), true);
 
 		final List<ProblemDescriptor> problems = new ArrayList<ProblemDescriptor>();
-		for (LatteVariableElement variable : variables) {
-			if (!variable.isDefinition()) {
-				String variableName = variable.getVariableName();
+		for (PsiPositionedElement variable : variables) {
+			if (!(variable instanceof LatteVariableElement)) {
+				continue;
+			}
+
+			if (!((LatteVariableElement) variable).isDefinition()) {
+				String variableName = ((LatteVariableElement) variable).getVariableName();
 				LatteVariableElement found = findDefinition(variableName, variables);
 				if (found == null) {
 					//ProblemDescriptor problem = manager.createProblemDescriptor(variable, "Undefined variable '" + variableName + "'", true, ProblemHighlightType.GENERIC_ERROR, isOnTheFly);
@@ -49,10 +54,14 @@ public class UndefinedVariableInspection extends LocalInspectionTool {
 	}
 
 	@Nullable
-	private static LatteVariableElement findDefinition(String variableName, List<LatteVariableElement> variables) {
-		for (LatteVariableElement variable : variables) {
-			if (variable.getVariableName().equals(variableName) && variable.isDefinition()) {
-				return variable;
+	private static LatteVariableElement findDefinition(String variableName, List<PsiPositionedElement> variables) {
+		for (PsiPositionedElement variable : variables) {
+			if (!(variable instanceof LatteVariableElement)) {
+				continue;
+			}
+
+			if (((LatteVariableElement) variable).getVariableName().equals(variableName) && ((LatteVariableElement) variable).isDefinition()) {
+				return (LatteVariableElement) variable;
 			}
 		}
 		return null;

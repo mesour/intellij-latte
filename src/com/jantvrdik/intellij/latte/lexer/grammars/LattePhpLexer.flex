@@ -38,6 +38,10 @@ VAR_STRING=[a-zA-Z_][a-zA-Z0-9_]*
         return T_PHP_DOUBLE_COLON;
     }
 
+    "->" {
+        return T_PHP_OBJECT_OPERATOR;
+    }
+
     ("<=>" | "<>" | "<=" | ">=" | "<" | ">" | "==" | "===" | "\!=" | "\==") {
         return T_PHP_OPERATOR;
     }

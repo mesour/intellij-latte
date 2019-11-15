@@ -22,6 +22,7 @@ public class LatteSyntaxHighlighter extends SyntaxHighlighterBase {
 	public static final TextAttributesKey MACRO_ARGS_NUMBER = createTextAttributesKey("LATTE_MACRO_ARGS_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
 	public static final TextAttributesKey MACRO_MODIFIERS = createTextAttributesKey("LATTE_MACRO_MODIFIERS", HighlighterColors.TEXT);
 	public static final TextAttributesKey MACRO_COMMENT = createTextAttributesKey("LATTE_MACRO_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
+	public static final TextAttributesKey PHP_ANNOTATION = createTextAttributesKey("LATTE_PHP_ANNOTATION", DefaultLanguageHighlighterColors.DOC_COMMENT);
 	public static final TextAttributesKey PHP_METHOD = createTextAttributesKey("LATTE_PHP_METHOD", DefaultLanguageHighlighterColors.INSTANCE_METHOD);
 
 
@@ -48,6 +49,9 @@ public class LatteSyntaxHighlighter extends SyntaxHighlighterBase {
 
 		} else if (token == LatteTypes.T_PHP_METHOD) {
 			return pack(PHP_METHOD);
+
+		} else if (token == LatteTypes.T_ANNOTATION_TAG_OPEN || token == LatteTypes.T_ANNOTATION_TAG_CLOSE || token == LatteTypes.T_ANNOTATION_OPERATOR || token == LatteTypes.T_ANNOTATION_OPEN_TAG_OPEN || token == LatteTypes.T_ANNOTATION_OPEN_TAG_CLOSE) {
+			return pack(PHP_ANNOTATION);
 
 		} else if (token == LatteTypes.T_MACRO_ARGS_STRING) {
 			return pack(MACRO_ARGS_STRING);
